@@ -2,13 +2,13 @@ const { productServices, cartsServices } = require("../service/index");
 const { mapProductCart, calculateQuantityTotal, calculateCartTotal } = require('../utils/calculosCarts');
 const fecha = require("../utils/Fecha");
 const { v4 } = require("uuid");
+const HttpResponse = require("../utils/middleware/errores");
+
+const HttpResp =  new HttpResponse
 
 const getAllCart = async (req , res) => {
   const getAll = await cartsServices.getAllCart()
-  return res.status(200).json({
-    message: "Todos los Carritos Existentes",
-    Carts: getAll
-  })
+  return HttpResp.OK(res , "Todos los Carritos Existentes" , getAll )
 }
 
 const createCarts = async (req, res) => {
@@ -19,17 +19,10 @@ const createCarts = async (req, res) => {
       products: [],
     }
     await cartsServices.createCart(cart)
-
-    return res.json({
-      msg: "Carrito Creado",
-      playload: cart,
-    })
+    return HttpResp.OK(res , "Carrito Creado" , cart)
 
   } catch (error) {
-    return res.status(500).json({
-      msg: "Error",
-      playload: error.message,
-    })
+    return HttpResp.Error(res , "ERROR" , error)
   }
 }
 
@@ -54,16 +47,10 @@ const addProductsToCart = async (req, res) => {
       products: productCartList,
     }
     await cartsServices.updateToCart(cid, productCart)
-    return res.json({
-      msg: "Productos Agregados",
-      playload: productCart,
-    })
+    return HttpResp.OK(res , "Productos Agregados al Carrito" , productCart)
 
   } catch (error) {
-    return res.status(500).json({
-      msg: "Error",
-      playload: error.message,
-    })
+    return HttpResp.Error(res , "ERROR" , error)
   }
 }
 
@@ -72,16 +59,10 @@ const bdgetCartId = async (req, res) => {
     const { cid } = req.params
     const cart = await cartsServices.getCartsId(cid);
     if (cart) {
-      return res.json({
-        msg: "Carrito Encontrado",
-        Cart: cart,
-      })
+      return HttpResp.OK(res , "Carrito encontrado" , cart)
     }
   } catch (error) {
-    return res.status(500).json({
-      msg: "error",
-      playload: error.message,
-    })
+    return HttpResp.BadRequest(res , "ERROR" , error)
   }
 }
 
@@ -99,10 +80,7 @@ const emptyToCart = async (req, res) => {
     })
 
   } catch (error) {
-    return res.status(500).json({
-      msg: "error",
-      playload: error.message,
-    })
+    return HttpResp.Error(res , "ERROR" , error)
   }
 
 }
@@ -114,28 +92,19 @@ const deleteProductToCart = async (req, res) => {
     const { cid, pid } = req.params;
     const Cart = await cartsServices.getCartsId(cid);
     if (!Cart) {
-      return res.status(400).json({
-        msg: "Carrito no encontrado",
-        ok: false,
-      })
+      return HttpResp.BadRequest(res , "Carrito no encontrado")
     }
 
     const product = await productServices.getProductId(pid);
     if (!product) {
-      return res.status(400).json({
-        msg: "Producto no encontrado en Base de Dato",
-        ok: false,
-      })
+      return HttpResp.BadRequest(res , "Producto no encontrado")
     }
 
 
     const findProductTocart = Cart.products.some(({ product }) => product._id == pid)
 
     if (!findProductTocart) {
-      return res.status(400).json({
-        msg: "Producto no existe en el carrito",
-        ok: false,
-      })
+      return HttpResp.BadRequest(res , "Producto no Existe en el carrito")
     }
     Cart.products = Cart.products.filter(({ product }) => product._id != pid)
     Cart.quantityTotal = calculateQuantityTotal(productCartList)
@@ -147,10 +116,7 @@ const deleteProductToCart = async (req, res) => {
     })
 
   } catch (error) {
-    return res.status(500).json({
-      msg: "error",
-      playload: error.message,
-    })
+    return HttpResp.Error(res , "ERROR" , error)
   }
 }
 
@@ -162,25 +128,16 @@ const updateToQuantityProduct = async (req, res) => {
 
     const Cart = await cartsServices.getCartsId(cid);
     if (!Cart) {
-      return res.status(400).json({
-        msg: "Carrito no encontrado",
-        ok: false,
-      })
+      return HttpResp.BadRequest(res , "Carrito no encontrado")
     }
     const product = await productServices.getProductId(pid);
     if (!product) {
-      return res.status(400).json({
-        msg: "Producto no encontrado en base de Datos",
-        ok: false,
-      })
+      return HttpResp.BadRequest(res , "Producto no encontrado en Base de Datos")
     }
     const findProductTocart = Cart.products.findIndex(({ product }) => product._id == pid)
 
     if (findProductTocart === -1) {
-      return res.status(400).json({
-        msg: "Producto no encontrado en el Carrito",
-        ok: false,
-      })
+      return HttpResp.BadRequest(res , "Producto no Encontrado en el carrito")
     }
     Cart.products[findProductTocart].quantity += quantity
     Cart.priceTotal = calculateCartTotal(Cart.products)
@@ -189,17 +146,10 @@ const updateToQuantityProduct = async (req, res) => {
       msg: "Cantidad Actualizada",
       Cart: Cart
     })
-
-
   } catch (error) {
-    return res.status(500).json({
-      msg: "error",
-      playload: error.message,
-    })
+    return HttpResp.Error(res , "ERROR" , error)
   }
-
 }
-
 
 const updateToProductsToCart = async (req, res) => {
 
@@ -207,10 +157,7 @@ const updateToProductsToCart = async (req, res) => {
     const { cid } = req.params
     const Cart = await cartsServices.getCartsId(cid);
     if (!Cart) {
-      return res.status(400).json({
-        msg: "Carrito Inexistente",
-        ok: false,
-      })
+      return HttpResp.BadRequest(res , "Carrito inexistente")
     }
     const { products = [] } = req.body
     let { productCartList } = await mapProductCart(products)
@@ -229,10 +176,7 @@ const updateToProductsToCart = async (req, res) => {
     })
 
   } catch (error) {
-    return res.status(500).json({
-      msg: 'Error',
-      payload: error.message,
-    })
+    return HttpResp.Error(res , "ERROR" , error)
   }
 }
 
@@ -244,10 +188,7 @@ const pucharse = async (req, res) => {
     const { cid } = req.params
     const cart = await cartsServices.getCartsId(cid);
     if (!cart) {
-      return res.json({
-        msg: "Carrito no Encontrado",
-        playload: cart,
-      })
+      return HttpResp.BadRequest(res , "Carrito no encontrado" , cart)
     }
 
 
@@ -279,10 +220,7 @@ const pucharse = async (req, res) => {
     const createTicket = await cartsServices.createTicket(ticket)
 
     if (!createTicket) {
-      return res.json({
-        msg: "No se Pudo Crear Ticket",
-        playload: createTicket,
-      })
+      return HttpResp.BadRequest(res , "Error al generar ticket" , createTicket)
     }
     return res.json({
       msg: "Tiket Creado",
@@ -290,15 +228,9 @@ const pucharse = async (req, res) => {
       ProductSinStock: sinStock,
     })
   } catch (error) {
-    return res.status(500).json({
-      msg: "error",
-      playload: error.message,
-    })
+    return HttpResp.Error(res , "ERROR" , error)
   }
 }
-
-
-
 
 
 module.exports = {

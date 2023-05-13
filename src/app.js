@@ -14,7 +14,9 @@ const  initPassaport  = require('./utils/passaport.config');
 const passport = require('passport');
 const cookie = require('cookie-parser');
 const {PORT, MONGODBURL, PERCIST } = require('./config/config');
+const mdwError = require('./utils/middleware/mdwError');
 if (MONGODBURL) import('./config/config.db.js');
+
 
 const httpServer = server.listen(PORT, () => 
   console.log(`Server started on port http://localhost:${PORT} -- PERCISTENCIA: ${ PERCIST}`),
@@ -43,6 +45,8 @@ server.use("/api/productsBd/", productsRouteBd );
 server.use("/api/cartsBd/", cartsRouteBd );
 server.use("/api/chats/", chatsRouter );
 server.use('/api/session', sessionRoute)
+
+server.use(mdwError)
 
 connectionSocket (httpServer);
 

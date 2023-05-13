@@ -1,21 +1,18 @@
 const { productServices } = require("../service/index");
+const HttpResponse = require("../utils/middleware/errores");
+const generateProducts = require("../utils/productsFaker");
 
+
+const HttpResp = new HttpResponse
 
 const getProductsBd = async (req, res) => {
   try {
     const { limit, page, sort, ...query } = req.query;
     const products = await productServices.getProduct(page, limit, sort, query);
-    return res.json({
-      status: "Sucess",
-      playload: products,
-    })
+    return HttpResp.OK(res , "Succes" , products)
   } catch (error) {
-      return res.json({
-      status: "Error",
-      playload: "error al intentar mostrar productos",
-    })
+    return HttpResp.Error(res , "Error" , error)
   }
-    
 };
 
 
@@ -23,15 +20,10 @@ const getProductIdBd = async (req, res) => {
   try {
     const id = req.params.pid
     const getProductId = await productServices.getProductId(id);
-    return res.json({
-      status: "Sucess",
-      playload: getProductId,
-    })
+    return HttpResp.OK(res , "Succes" , getProductId)
   } catch (error) {
-    return res.json({
-    status: "Error",
-    playload: "error al intentar mostrar producto",
-  })}
+    return HttpResp.BadRequest(res , "Error" , error)
+  }
 }
 
 
@@ -39,16 +31,10 @@ const addProductBd = async (req, res) => {
   try {
     const product = req.body;
     const newproduct = await productServices.addProduct(product);
-    return res.json({
-      status: "Sucess",
-      playload:newproduct,
-    })
+    return HttpResp.OK(res , "Succes" , newproduct)
   } catch (error) {
-
-    return res.json({
-      status: "error",
-      playload:"error al crear producto",
-    })}
+    return HttpResp.BadRequest(res , "Error" , error)
+  }
 }
 
 const updateProductBd = async (req, res) => {
@@ -56,30 +42,30 @@ const updateProductBd = async (req, res) => {
     const id = req.params.pid
     const product = req.body
     const UpdateProductId = await productServices.updateProduct(id, product);
-    return res.json({
-      status: "Sucess",
-      playload:UpdateProductId,
-    })
+    return HttpResp.OK(res , "Succes" , UpdateProductId)
   } catch (error) {
-    return res.json({
-      status: "error",
-      playload:"error al actualizar producto",
-    })}
+    return HttpResp.BadRequest(res , "Error" , error)
+  }
 }
 
 const deleteProductBd = async (req, res) => {
   try {
     const id = req.params.pid
     const deleteproduct = await productServices.deleteProductId(id);
-    return res.json({
-    status: "Sucess",
-    playload: deleteproduct,
-  })
+    return HttpResp.OK(res , "Succes" , deleteproduct)
   } catch (error) {
-  return res.json({
-    status: "erorr",
-    playload: "error al eliminar producto",
-  })}
+    return HttpResp.BadRequest(res , "Error" , error)
+  }
+}
+
+
+const getmockingproducts = async (req,res)=>{
+  try {
+    const products = generateProducts()
+    return HttpResp.OK(res , "Succes" , products)
+  } catch (error) {
+    return HttpResp.error(res , "Error" , error)
+  }
 }
 
 module.exports = {
@@ -88,4 +74,5 @@ module.exports = {
   addProductBd,
   updateProductBd,
   deleteProductBd,
+  getmockingproducts
 }

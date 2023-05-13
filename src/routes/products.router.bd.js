@@ -1,5 +1,5 @@
 const {Router} = require('express');
-const { getProductsBd, addProductBd, getProductIdBd, updateProductBd, deleteProductBd } = require('../controller/products.controller.bd');
+const { getProductsBd, addProductBd, getProductIdBd, updateProductBd, deleteProductBd, getmockingproducts } = require('../controller/products.controller.bd');
 const { adminPermission } = require('../utils/middleware/isUser');
 const passportCustom = require('../utils/passportCall');
 const { JWT_STRATEGY } = require('../config/config');
@@ -7,6 +7,7 @@ const { JWT_STRATEGY } = require('../config/config');
 
 const router =  Router();
 
+router.get('/mockingproducts' , getmockingproducts)
 router.get ("/",getProductsBd)
 router.post("/",passportCustom(JWT_STRATEGY),adminPermission,addProductBd)
 router.get ("/:pid", getProductIdBd)
